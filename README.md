@@ -1,6 +1,6 @@
 
 # sidekiq-worker-killer
-[![CircleCI](https://circleci.com/gh/klaxit/sidekiq-worker-killer/tree/master.svg?style=shield&circle-token=9979a41b6831e6f65749638b923643b86e5fc580)](https://circleci.com/gh/klaxit/sidekiq-worker-killer/tree/master)
+[![CircleCI](https://circleci.com/gh/klaxit/sidekiq-worker-killer.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/klaxit/sidekiq-worker-killer)
 
 [Sidekiq](https://github.com/mperham/sidekiq) is probably the best background processing framework today. At the same time, memory leaks are very hard to tackle in Ruby and we often find ourselves with growing memory consumption.
 
