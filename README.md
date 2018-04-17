@@ -1,5 +1,6 @@
 
 # sidekiq-worker-killer
+[![Gem Version](https://badge.fury.io/rb/sidekiq-worker-killer.svg)](https://badge.fury.io/rb/sidekiq-worker-killer)
 [![CircleCI](https://circleci.com/gh/klaxit/sidekiq-worker-killer.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/klaxit/sidekiq-worker-killer)
 
 [Sidekiq](https://github.com/mperham/sidekiq) is probably the best background processing framework today. At the same time, memory leaks are very hard to tackle in Ruby and we often find ourselves with growing memory consumption.
@@ -9,7 +10,7 @@ Highly inspired by [Gitlab Sidekiq MemoryKiller](https://gitlab.com/gitlab-org/g
 ## Install
 Use [Bundler](http://bundler.io/)
 ```
-gem "sidekiq-worker-killer", git: "https://github.com/klaxit/sidekiq-worker-killer"
+gem "sidekiq-worker-killer"
 ```
 
 ## Usage
@@ -19,7 +20,7 @@ Add this to your Sidekiq configuration.
 ```
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add Sidekiq::WorkerKiller, max_rss: 250
+    chain.add Sidekiq::WorkerKiller, max_rss: 480
   end
 end
 ```
