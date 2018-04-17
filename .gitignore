@@ -1,0 +1,5 @@
+Gemfile.lock
+.DS_STORE
+.byebug_history
+*.gem
+.idea/

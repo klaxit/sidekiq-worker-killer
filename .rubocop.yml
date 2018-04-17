@@ -1,0 +1,43 @@
+# Override default Rubocop confg
+# See https://github.com/bbatsov/rubocop
+
+AllCops:
+  Exclude:
+    - "spec/**/*"
+
+Layout/DotPosition:
+  EnforcedStyle: leading
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: space
+  EnforcedStyleForEmptyBraces: no_space
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+  UseHashRocketsWithSymbolValues: false
+  PreferHashRocketsForNonAlnumEndingSymbols: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  ConsistentQuotesInMultiline: true
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    default: ()
+    '%i': '()'
+    '%I': '()'
+    '%r': '()'
+    '%w': '()'
+    '%W': '()'
+
+##################### Metrics ####################
+
+Metrics/MethodLength:
+  CountComments: false  # count full line comments?
+  Max: 20
