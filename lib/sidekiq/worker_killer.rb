@@ -1,6 +1,7 @@
 module Sidekiq
+  # Sidekiq server middleware. Kill worker when the RSS memory exceeds limit
+  # after a given grace time.
   class WorkerKiller
-    
     MUTEX = Mutex.new
 
     def initialize(options = {})
@@ -12,13 +13,21 @@ module Sidekiq
 
     def call(worker, _job, _queue)
       yield
-
+      # Skip if the max RSS is not exceeded
       return unless @max_rss > 0 && current_rss > @max_rss
+      # Perform kill
+      perform_kill(worker)
+    end
 
+    private
+
+    def perform_kill(worker)
+      # In another thread to allow undelying job to finish
       Thread.new do
         # Return if another thread is already waiting to shut Sidekiq down
         return unless MUTEX.try_lock
 
+        # Perform the killing process
         worker_ref = "PID #{pid} - Worker #{worker.class}"
 
         warn "current RSS #{current_rss} exceeds maximum RSS #{@max_rss}"
@@ -37,8 +46,6 @@ module Sidekiq
         kill(@shutdown_signal, pid)
       end
     end
-
-    private
 
     def current_rss
       GetProcessMem.new.mb
