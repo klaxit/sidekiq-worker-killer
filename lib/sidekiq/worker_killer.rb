@@ -1,66 +1,84 @@
 require "get_process_mem"
 require "sidekiq"
+require "sidekiq/util"
 
 module Sidekiq
   # Sidekiq server middleware. Kill worker when the RSS memory exceeds limit
   # after a given grace time.
   class WorkerKiller
+    include Sidekiq::Util
+
     MUTEX = Mutex.new
 
     def initialize(options = {})
       @max_rss         = (options[:max_rss]         || 0)
       @grace_time      = (options[:grace_time]      || 15 * 60)
       @shutdown_wait   = (options[:shutdown_wait]   || 30)
-      @shutdown_signal = (options[:shutdown_signal] || "SIGKILL")
+      @kill_signal     = (options[:kill_signal]     || "SIGKILL")
     end
 
-    def call(worker, _job, _queue)
+    def call(_worker, _job, _queue)
       yield
       # Skip if the max RSS is not exceeded
-      Sidekiq.logger.debug("current RSS is #{current_rss} MB")
       return unless @max_rss > 0 && current_rss > @max_rss
-      # Perform kill
-      perform_kill(worker)
+      # Launch the shutdown process
+      request_shutdown
     end
 
     private
 
-    def perform_kill(worker)
+    def request_shutdown
       # In another thread to allow undelying job to finish
       Thread.new do
-        # Return if another thread is already waiting to shut Sidekiq down
+        # Return if another thread is already shutting down the Sidekiq process
         return unless MUTEX.try_lock
 
-        # Perform the killing process
-        worker_ref = "[PID #{pid} - Worker #{worker.class}]"
-
-        warn "current RSS #{current_rss} exceeds maximum RSS #{@max_rss}"
-        warn "this thread will shut down #{worker_ref} in " \
-             "#{@grace_time} seconds"
-        sleep(@grace_time)
-
-        warn "sending SIGTERM to #{worker_ref}"
-        kill("SIGTERM", pid)
-
-        warn "waiting #{@shutdown_wait} seconds before sending " \
-             "#{@shutdown_signal} to #{worker_ref}"
-        sleep(@shutdown_wait)
-
-        warn "sending #{@shutdown_signal} to #{worker_ref}"
-        kill(@shutdown_signal, pid)
+        warn "current RSS #{current_rss} of #{identity} exceeds " \
+             "maximum RSS #{@max_rss}"
+        shutdown
       end
     end
 
-    def current_rss
-      @current_rss ||= ::GetProcessMem.new.mb
+    def shutdown
+      warn "sending #{quiet_signal} to #{identity}"
+      signal(quiet_signal, pid)
+
+      warn "shutting down #{identity} in #{@grace_time} seconds"
+      sleep(@grace_time)
+
+      warn "sending SIGTERM to #{identity}"
+      signal("SIGTERM", pid)
+
+      warn "waiting #{@shutdown_wait} seconds before sending " \
+            "#{@kill_signal} to #{identity}"
+      sleep(@kill_signal)
+
+      warn "sending #{@kill_signal} to #{identity}"
+      signal(@kill_signal, pid)
     end
 
-    def kill(signal, pid)
+    def current_rss
+      ::GetProcessMem.new.mb
+    end
+
+    def signal(signal, pid)
       ::Process.kill(signal, pid)
     end
 
     def pid
-      @pid ||= ::Process.pid
+      ::Process.pid
+    end
+
+    def identity
+      "#{hostname}:#{pid}"
+    end
+
+    def quiet_signal
+      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("5.0")
+        "TSTP"
+      else
+        "USR1"
+      end
     end
 
     def warn(msg)

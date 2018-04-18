@@ -15,14 +15,14 @@ describe Sidekiq::WorkerKiller do
       before do
         allow(subject).to receive(:current_rss).and_return(3)
       end
-      it "should perform kill" do
-        expect(subject).to receive(:perform_kill).with(worker)
+      it "should request shutdown" do
+        expect(subject).to receive(:request_shutdown)
         subject.call(worker, job, queue){}
       end
       context "but max rss is 0" do
         subject{ described_class.new(max_rss: 0) }
-        it "should not perform kill" do
-          expect(subject).to_not receive(:perform_kill).with(worker)
+        it "should not request shutdown" do
+          expect(subject).to_not receive(:request_shutdown)
           subject.call(worker, job, queue){}
         end
       end
