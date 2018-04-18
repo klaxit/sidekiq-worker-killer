@@ -22,6 +22,8 @@ module Sidekiq
       # Skip if the max RSS is not exceeded
       return unless @max_rss > 0 && current_rss > @max_rss
       # Launch the shutdown process
+      warn "current RSS #{current_rss} of #{identity} exceeds " \
+           "maximum RSS #{@max_rss}"
       request_shutdown
     end
 
@@ -30,12 +32,9 @@ module Sidekiq
     def request_shutdown
       # In another thread to allow undelying job to finish
       Thread.new do
-        # Return if another thread is already shutting down the Sidekiq process
-        return unless MUTEX.try_lock
-
-        warn "current RSS #{current_rss} of #{identity} exceeds " \
-             "maximum RSS #{@max_rss}"
-        shutdown
+        # Only if another thread is not already
+        # shutting down the Sidekiq process
+        shutdown if MUTEX.try_lock
       end
     end
 
