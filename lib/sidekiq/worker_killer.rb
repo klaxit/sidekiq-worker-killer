@@ -50,7 +50,7 @@ module Sidekiq
 
       warn "waiting #{@shutdown_wait} seconds before sending " \
             "#{@kill_signal} to #{identity}"
-      sleep(@kill_signal)
+      sleep(@shutdown_wait)
 
       warn "sending #{@kill_signal} to #{identity}"
       signal(@kill_signal, pid)
