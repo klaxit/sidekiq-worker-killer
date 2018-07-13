@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-ruby "2.3.6"
+ruby RUBY_VERSION
 
 gemspec
 

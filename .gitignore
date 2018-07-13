@@ -1,5 +1,21 @@
-Gemfile.lock
+## GENERAL
+coverage
+doc
+log
+pkg/*
+rdoc
+tmp
 .DS_STORE
 .byebug_history
+.rvmrc
+.ruby-version
+
+## BUNDLER
+bin
+Gemfile.lock
+vendor/bundle
+.bundle
 *.gem
+
+## IDEs
 .idea/
