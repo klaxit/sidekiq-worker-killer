@@ -21,6 +21,8 @@ module Sidekiq
       yield
       # Skip if the max RSS is not exceeded
       return unless @max_rss > 0 && current_rss > @max_rss
+      GC.start(full_mark: true, immediate_sweep: true)
+      return unless @max_rss > 0 && current_rss > @max_rss
       # Launch the shutdown process
       warn "current RSS #{current_rss} of #{identity} exceeds " \
            "maximum RSS #{@max_rss}"
