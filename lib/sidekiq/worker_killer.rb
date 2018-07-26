@@ -43,7 +43,7 @@ module Sidekiq
       signal(quiet_signal, pid)
 
       warn "shutting down #{identity} in #{@grace_time} seconds"
-      sleep(@grace_time)
+      wait_job_finish_in_grace_time
 
       warn "sending SIGTERM to #{identity}"
       signal("SIGTERM", pid)
@@ -54,6 +54,21 @@ module Sidekiq
 
       warn "sending #{@kill_signal} to #{identity}"
       signal(@kill_signal, pid)
+    end
+
+    def wait_job_finish_in_grace_time
+      start = Time.now
+      loop do
+        break if start + @grace_time < Time.now || no_jobs_on_quiet_processes?
+        sleep(1)
+      end
+    end
+
+    def no_jobs_on_quiet_processes?
+      Sidekiq::ProcessSet.new.each do |process|
+        return false if !process["busy"].zero? && process["quiet"]
+      end
+      true
     end
 
     def current_rss
