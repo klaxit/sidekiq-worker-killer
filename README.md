@@ -32,7 +32,7 @@ The following options can be overrided.
 | Option | Defaults | Description |
 | ------- | ------- | ----------- |
 | max_rss | 0 MB (disabled) | max RSS in megabytes. Above this, shutdown will be triggered. |
-| grace_time | 900 seconds | when shutdown is triggered, the Sidekiq process will not accept new job but wait 15 minutes for running jobs to finish.  |
+| grace_time | 900 seconds | when shutdown is triggered, the Sidekiq process will not accept new job and wait at most 15 minutes for running jobs to finish.  |
 | shutdown_wait | 30 seconds | when the grace time expires, still running jobs get 30 seconds to terminate. After that, kill signal is triggered.  |
 | kill_signal | SIGKILL | Signal to use kill Sidekiq process if it doesn't terminate.  |
 
