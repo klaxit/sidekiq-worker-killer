@@ -18,6 +18,8 @@ gem "sidekiq-worker-killer"
 Add this to your Sidekiq configuration.
 
 ```
+require 'sidekiq/worker_killer'
+
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
     chain.add Sidekiq::WorkerKiller, max_rss: 480
