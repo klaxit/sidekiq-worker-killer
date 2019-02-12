@@ -24,6 +24,19 @@ describe Sidekiq::WorkerKiller do
         expect(subject).to receive(:request_shutdown)
         subject.call(worker, job, queue){}
       end
+      it "should call garbage collect" do
+        allow(subject).to receive(:request_shutdown)
+        expect(GC).to receive(:start).with(full_mark: true, immediate_sweep: true)
+        subject.call(worker, job, queue){}
+      end
+      context "when gc is false" do
+        subject{ described_class.new(max_rss: 2, gc: false) }
+        it "should not call garbage collect" do
+          allow(subject).to receive(:request_shutdown)
+          expect(GC).not_to receive(:start)
+          subject.call(worker, job, queue){}
+        end
+      end
       context "but max rss is 0" do
         subject{ described_class.new(max_rss: 0) }
         it "should not request shutdown" do
@@ -35,14 +48,28 @@ describe Sidekiq::WorkerKiller do
   end
 
   describe "#request_shutdown" do
-    before { allow(subject).to receive(:shutdown){ sleep 0.01 } }
-    it "should call shutdown" do
-      expect(subject).to receive(:shutdown)
-      subject.send(:request_shutdown).join
+    context "grace time is default" do
+      before { allow(subject).to receive(:shutdown){ sleep 0.01 } }
+      it "should call shutdown" do
+        expect(subject).to receive(:shutdown)
+        subject.send(:request_shutdown).join
+      end
+      it "should not call shutdown twice when called concurrently" do
+        expect(subject).to receive(:shutdown).once
+        2.times.map{ subject.send(:request_shutdown) }.each(&:join)
+      end
     end
-    it "should not call shutdown twice when called concurrently" do
-      expect(subject).to receive(:shutdown).once
-      2.times.map{ subject.send(:request_shutdown) }.each(&:join)
+    context "grace time is Float::INFINITY" do
+      subject{ described_class.new(max_rss: 2, grace_time: Float::INFINITY, shutdown_wait: 0) }
+      it "call signal only on jobs" do
+        allow(subject).to receive(:no_jobs_on_quiet_processes?).and_return(true)
+        allow(subject).to receive(:pid).and_return(99)
+        expect(Process).to receive(:kill).with('TSTP', 99)
+        expect(Process).to receive(:kill).with('SIGTERM', 99)
+        expect(Process).to receive(:kill).with('SIGKILL', 99)
+
+        subject.send(:request_shutdown).join
+      end
     end
   end
 
