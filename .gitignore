@@ -5,7 +5,6 @@ log
 pkg/*
 rdoc
 tmp
-.DS_STORE
 .byebug_history
 .rvmrc
 .ruby-version
@@ -17,5 +16,5 @@ vendor/bundle
 .bundle
 *.gem
 
-## IDEs
-.idea/
+## KLAXIT
+.rubocop-*

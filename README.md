@@ -7,9 +7,11 @@
 
 Highly inspired by [Gitlab Sidekiq MemoryKiller](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/lib/gitlab/sidekiq_middleware/shutdown.rb) and [Noxa Sidekiq killer](https://github.com/Noxa/sidekiq-killer).
 
+quick-refs: [install](#install) | [usage](#usage) | [available options](#available-options) | [development](#development)
+
 ## Install
 Use [Bundler](http://bundler.io/)
-```
+```ruby
 gem "sidekiq-worker-killer"
 ```
 
@@ -17,7 +19,7 @@ gem "sidekiq-worker-killer"
 
 Add this to your Sidekiq configuration.
 
-```
+```ruby
 require 'sidekiq/worker_killer'
 
 Sidekiq.configure_server do |config|
@@ -27,7 +29,7 @@ Sidekiq.configure_server do |config|
 end
 ```
 
-# Available options
+## Available options
 
 The following options can be overrided.
 
@@ -38,6 +40,19 @@ The following options can be overrided.
 | shutdown_wait | 30 seconds | when the grace time expires, still running jobs get 30 seconds to terminate. After that, kill signal is triggered.  |
 | kill_signal | SIGKILL | Signal to use kill Sidekiq process if it doesn't terminate.  |
 | gc | true | Try to run garbage collection before Sidekiq process terminate in case of max_rss exceeded  |
+
+## Development
+
+Pull Requests are very welcome!
+
+There are tasks that may help you along the way in a makefile:
+
+```bash
+make console # Loads the whole stack in an IRB session.
+make test # Run tests.
+make lint # Run rubocop linter.
+```
+Please make sure that you have tested your code carefully before opening a PR, and make sure as well that you have no style issues.
 
 ## Authors
 
