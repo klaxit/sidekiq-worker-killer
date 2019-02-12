@@ -10,20 +10,20 @@ class Sidekiq::WorkerKiller
   MUTEX = Mutex.new
 
   def initialize(options = {})
-    @max_rss         = (options[:max_rss]         || 0)
-    @grace_time      = (options[:grace_time]      || 15 * 60)
-    @shutdown_wait   = (options[:shutdown_wait]   || 30)
-    @kill_signal     = (options[:kill_signal]     || "SIGKILL")
+    @max_rss         = options.fetch(:max_rss, 0)
+    @grace_time      = options.fetch(:grace_time, 15 * 60)
+    @shutdown_wait   = options.fetch(:shutdown_wait, 30)
+    @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
+    @gc              = options.fetch(:gc, true)
   end
 
   def call(_worker, _job, _queue)
     yield
     # Skip if the max RSS is not exceeded
-    return unless @max_rss > 0 && current_rss > @max_rss
-
-    GC.start(full_mark: true, immediate_sweep: true)
-    return unless @max_rss > 0 && current_rss > @max_rss
-
+    return unless @max_rss > 0
+    return unless current_rss > @max_rss
+    GC.start(full_mark: true, immediate_sweep: true) if @gc
+    return unless current_rss > @max_rss
     # Launch the shutdown process
     warn "current RSS #{current_rss} of #{identity} exceeds " \
          "maximum RSS #{@max_rss}"
@@ -62,10 +62,23 @@ class Sidekiq::WorkerKiller
   def wait_job_finish_in_grace_time
     start = Time.now
     loop do
-      break if start + @grace_time < Time.now || no_jobs_on_quiet_processes?
-
+      break if grace_time_exceeded?(start)
+      break if no_jobs_on_quiet_processes?
       sleep(1)
     end
+  end
+
+  def grace_time_exceeded?(start)
+    return false if @grace_time == Float::INFINITY
+
+    start + @grace_time < Time.now
+  end
+
+  def no_jobs_on_quiet_processes?
+    Sidekiq::ProcessSet.new.each do |process|
+      return false if !process["busy"].zero? && process["quiet"]
+    end
+    true
   end
 
   def no_jobs_on_quiet_processes?
