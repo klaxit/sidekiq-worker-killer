@@ -1,0 +1,40 @@
+# Ruby CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-ruby/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the desired version here
+      - image: circleci/ruby:2.5.3-node-browsers
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Bundler
+          command: gem install bundler --conservative
+
+      # Load installed gems from cache if possible, bundle install & clean,
+      # then save cache. Multiple caches to increase the chance of a cache hit.
+      # => Make sure to specify ruby version & architecture in cache keys
+      #    (or conflicts on native gems may appear)
+      - restore_cache:
+          keys:
+            - v1-gem-cache-ruby-2.5-{{ arch }}-{{ checksum "sidekiq-worker-killer.gemspec" }}
+            - v1-gem-cache-ruby-2.5-{{ arch }}-
+
+      - run:
+          name: Install dependencies
+          command: bundle install && bundle clean
+
+      - save_cache:
+          key: v1-gem-cache-ruby-2.5-{{ arch }}-{{ checksum "sidekiq-worker-killer.gemspec" }}
+          paths:
+            - vendor/bundle
+
+      # Run tests!
+      - run:
+          name: Run tests
+          command: make test
