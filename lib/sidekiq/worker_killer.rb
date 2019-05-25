@@ -76,14 +76,7 @@ class Sidekiq::WorkerKiller
 
   def no_jobs_on_quiet_processes?
     Sidekiq::ProcessSet.new.each do |process|
-      return false if !process["busy"].zero? && process["quiet"]
-    end
-    true
-  end
-
-  def no_jobs_on_quiet_processes?
-    Sidekiq::ProcessSet.new.each do |process|
-      return false if !process["busy"] == 0 && process["quiet"]
+      return false if process["busy"] != 0 && process["quiet"] == "true"
     end
     true
   end
