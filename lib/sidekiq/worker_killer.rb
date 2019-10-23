@@ -15,16 +15,21 @@ class Sidekiq::WorkerKiller
     @shutdown_wait   = options.fetch(:shutdown_wait, 30)
     @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
     @gc              = options.fetch(:gc, true)
+    @skip_shutdown   = options.fetch(:skip_shutdown_if, nil)
   end
 
-  def call(_worker, _job, _queue)
+  def call(worker, job, queue)
     yield
     # Skip if the max RSS is not exceeded
     return unless @max_rss > 0
     return unless current_rss > @max_rss
     GC.start(full_mark: true, immediate_sweep: true) if @gc
     return unless current_rss > @max_rss
-    # Launch the shutdown process
+    if @skip_shutdown && @skip_shutdown.call(worker, job, queue)
+      warn "#{worker.class} exceeds maximum RSS #{@max_rss}, however shutdown will be ignored"
+      return
+    end
+
     warn "current RSS #{current_rss} of #{identity} exceeds " \
          "maximum RSS #{@max_rss}"
     request_shutdown
