@@ -30,7 +30,7 @@ describe Sidekiq::WorkerKiller do
         subject.call(worker, job, queue){}
       end
 
-      context "when skip_shutdown_if is given" do
+      context "and skip_shutdown_if is given" do
         subject{ described_class.new(max_rss: 2, skip_shutdown_if: skip_shutdown_proc) }
 
         context "and skip_shutdown_if is a proc" do
@@ -51,6 +51,14 @@ describe Sidekiq::WorkerKiller do
 
         context "and skip_shutdown_if returns false" do
           let(:skip_shutdown_proc) { proc { |worker, job, queue| false } }
+          it "should still request shutdown" do
+            expect(subject).to receive(:request_shutdown)
+            subject.call(worker, job, queue){}
+          end
+        end
+
+        context "and skip_shutdown_if returns nil" do
+          let(:skip_shutdown_proc) { proc { |worker, job, queue| nil } }
           it "should still request shutdown" do
             expect(subject).to receive(:request_shutdown)
             subject.call(worker, job, queue){}
