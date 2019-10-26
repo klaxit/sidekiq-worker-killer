@@ -45,6 +45,8 @@ class Sidekiq::WorkerKiller
     warn "sending #{quiet_signal} to #{identity}"
     signal(quiet_signal, pid)
 
+    sleep(5) # gives Sidekiq API 5 seconds to update ProcessSet
+
     warn "shutting down #{identity} in #{@grace_time} seconds"
     wait_job_finish_in_grace_time
 
