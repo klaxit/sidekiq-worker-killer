@@ -4,6 +4,7 @@ describe Sidekiq::WorkerKiller do
 
   before do
     allow(subject).to receive(:warn) # silence "warn" logs
+    allow(subject).to receive(:sleep) # reduces tests running time
   end
 
   describe "#call" do
