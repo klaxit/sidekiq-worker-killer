@@ -36,10 +36,25 @@ The following options can be overrided.
 | Option | Defaults | Description |
 | ------- | ------- | ----------- |
 | max_rss | 0 MB (disabled) | max RSS in megabytes. Above this, shutdown will be triggered. |
-| grace_time | 900 seconds | when shutdown is triggered, the Sidekiq process will not accept new job and wait at most 15 minutes for running jobs to finish. If Float::INFINITY specified, will wait forever  |
+| grace_time | 900 seconds | when shutdown is triggered, the Sidekiq process will not accept new job and wait at most 15 minutes for running jobs to finish. If Float::INFINITY specified, will wait forever.  |
 | shutdown_wait | 30 seconds | when the grace time expires, still running jobs get 30 seconds to terminate. After that, kill signal is triggered.  |
 | kill_signal | SIGKILL | Signal to use kill Sidekiq process if it doesn't terminate.  |
-| gc | true | Try to run garbage collection before Sidekiq process terminate in case of max_rss exceeded  |
+| gc | true | Try to run garbage collection before Sidekiq process terminate in case of max_rss exceeded.  |
+| skip_shutdown_if | Proc.new {false} | Executes a block of code after max_rss exceeds but before requesting shutdown. |
+
+*skip_shutdown_if* is expected to return anything other than `false` or `nil` to skip shutdown.
+
+```ruby
+require 'sidekiq/worker_killer'
+
+Sidekiq.configure_server do |config|
+  config.server_middleware do |chain|
+    chain.add Sidekiq::WorkerKiller, max_rss: 480, skip_shutdown_if: ->(worker, job, queue) do
+      worker.to_s == 'LongWorker'
+    end
+  end
+end
+```
 
 ## Development
 

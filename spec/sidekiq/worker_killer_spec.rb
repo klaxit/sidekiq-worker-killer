@@ -30,6 +30,43 @@ describe Sidekiq::WorkerKiller do
         expect(GC).to receive(:start).with(full_mark: true, immediate_sweep: true)
         subject.call(worker, job, queue){}
       end
+
+      context "and skip_shutdown_if is given" do
+        subject{ described_class.new(max_rss: 2, skip_shutdown_if: skip_shutdown_proc) }
+
+        context "and skip_shutdown_if is a proc" do
+          let(:skip_shutdown_proc) { proc { |worker| true } }
+          it "should NOT request shutdown" do
+            expect(subject).not_to receive(:request_shutdown)
+            subject.call(worker, job, queue){}
+          end
+        end
+
+        context "and skip_shutdown_if is a lambda" do
+          let(:skip_shutdown_proc) { ->(worker, job, queue) { true } }
+          it "should NOT request shutdown" do
+            expect(subject).not_to receive(:request_shutdown)
+            subject.call(worker, job, queue){}
+          end
+        end
+
+        context "and skip_shutdown_if returns false" do
+          let(:skip_shutdown_proc) { proc { |worker, job, queue| false } }
+          it "should still request shutdown" do
+            expect(subject).to receive(:request_shutdown)
+            subject.call(worker, job, queue){}
+          end
+        end
+
+        context "and skip_shutdown_if returns nil" do
+          let(:skip_shutdown_proc) { proc { |worker, job, queue| nil } }
+          it "should still request shutdown" do
+            expect(subject).to receive(:request_shutdown)
+            subject.call(worker, job, queue){}
+          end
+        end
+      end
+
       context "when gc is false" do
         subject{ described_class.new(max_rss: 2, gc: false) }
         it "should not call garbage collect" do
