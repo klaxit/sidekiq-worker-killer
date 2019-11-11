@@ -47,32 +47,28 @@ class Sidekiq::WorkerKiller
   end
 
   def shutdown
-    warn "sending #{quiet_signal} to #{identity}"
-    signal(quiet_signal, pid)
+    warn "sending quiet to #{identity}"
+    sidekiq_process.quiet!
 
     sleep(5) # gives Sidekiq API 5 seconds to update ProcessSet
 
     warn "shutting down #{identity} in #{@grace_time} seconds"
     wait_job_finish_in_grace_time
 
-    warn "sending SIGTERM to #{identity}"
-    signal("SIGTERM", pid)
+    warn "stopping #{identity}"
+    sidekiq_process.stop!
 
     warn "waiting #{@shutdown_wait} seconds before sending " \
           "#{@kill_signal} to #{identity}"
     sleep(@shutdown_wait)
 
     warn "sending #{@kill_signal} to #{identity}"
-    signal(@kill_signal, pid)
+    ::Process.kill(@kill_signal, ::Process.pid)
   end
 
   def wait_job_finish_in_grace_time
     start = Time.now
-    loop do
-      break if grace_time_exceeded?(start)
-      break if no_jobs_on_quiet_processes?
-      sleep(1)
-    end
+    sleep(1) until grace_time_exceeded?(start) || jobs_finished?
   end
 
   def grace_time_exceeded?(start)
@@ -81,35 +77,18 @@ class Sidekiq::WorkerKiller
     start + @grace_time < Time.now
   end
 
-  def no_jobs_on_quiet_processes?
-    Sidekiq::ProcessSet.new.each do |process|
-      return false if process["busy"] != 0 && process["quiet"] == "true"
-    end
-    true
+  def jobs_finished?
+    sidekiq_process.stopping? && sidekiq_process["busy"].zero?
   end
 
   def current_rss
     ::GetProcessMem.new.mb
   end
 
-  def signal(signal, pid)
-    ::Process.kill(signal, pid)
-  end
-
-  def pid
-    ::Process.pid
-  end
-
-  def identity
-    "#{hostname}:#{pid}"
-  end
-
-  def quiet_signal
-    if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("5.0")
-      "TSTP"
-    else
-      "USR1"
-    end
+  def sidekiq_process
+    Sidekiq::ProcessSet.new.find { |process|
+      process["identity"] == identity
+    } || raise("No sidekiq worker with identity #{identity} found")
   end
 
   def warn(msg)
