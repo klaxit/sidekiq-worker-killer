@@ -10,15 +10,17 @@ class Sidekiq::WorkerKiller
 
   MUTEX = Mutex.new
 
+  # :nodoc:
   def initialize(options = {})
     @max_rss         = options.fetch(:max_rss, 0)
     @grace_time      = options.fetch(:grace_time, 15 * 60)
     @shutdown_wait   = options.fetch(:shutdown_wait, 30)
     @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
     @gc              = options.fetch(:gc, true)
-    @skip_shutdown   = options.fetch(:skip_shutdown_if, Proc.new { false })
+    @skip_shutdown   = options.fetch(:skip_shutdown_if, proc { false })
   end
 
+  # @return [void]
   def call(worker, job, queue)
     yield
     # Skip if the max RSS is not exceeded
@@ -26,8 +28,9 @@ class Sidekiq::WorkerKiller
     return unless current_rss > @max_rss
     GC.start(full_mark: true, immediate_sweep: true) if @gc
     return unless current_rss > @max_rss
-    if @skip_shutdown.respond_to?(:call) && @skip_shutdown.call(worker, job, queue)
-      warn "current RSS #{current_rss} exceeds maximum RSS #{@max_rss}, however shutdown will be ignored"
+    if skip_shutdown?(worker, job, queue)
+      warn "current RSS #{current_rss} exceeds maximum RSS #{@max_rss}, " \
+           "however shutdown will be ignored"
       return
     end
 
@@ -37,6 +40,10 @@ class Sidekiq::WorkerKiller
   end
 
   private
+
+  def skip_shutdown?(worker, job, queue)
+    @skip_shutdown.respond_to?(:call) && @skip_shutdown.call(worker, job, queue)
+  end
 
   def request_shutdown
     # In another thread to allow undelying job to finish
@@ -79,7 +86,7 @@ class Sidekiq::WorkerKiller
   end
 
   def jobs_finished?
-    sidekiq_process.stopping? && sidekiq_process["busy"].zero?
+    sidekiq_process.stopping? && sidekiq_process["busy"] == 0
   end
 
   def current_rss
@@ -87,9 +94,9 @@ class Sidekiq::WorkerKiller
   end
 
   def sidekiq_process
-    Sidekiq::ProcessSet.new.find { |process|
+    Sidekiq::ProcessSet.new.find do |process|
       process["identity"] == identity
-    } || raise("No sidekiq worker with identity #{identity} found")
+    end || raise("No sidekiq worker with identity #{identity} found")
   end
 
   def warn(msg)
