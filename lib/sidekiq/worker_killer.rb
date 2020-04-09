@@ -1,6 +1,7 @@
 require "get_process_mem"
 require "sidekiq"
 require "sidekiq/util"
+require "sidekiq/api"
 
 # Sidekiq server middleware. Kill worker when the RSS memory exceeds limit
 # after a given grace time.
