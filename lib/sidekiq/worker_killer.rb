@@ -10,7 +10,26 @@ class Sidekiq::WorkerKiller
 
   MUTEX = Mutex.new
 
-  # :nodoc:
+  # @param [Hash] options
+  # @option options [Integer] max_rss
+  #   Max RSS in MB. Above this, shutdown will be triggered.
+  #   (default: `0` (disabled))
+  # @option options [Integer] grace_time
+  #   When shutdown is triggered, the Sidekiq process will not accept new job
+  #   and wait at most 15 minutes for running jobs to finish.
+  #   If Float::INFINITY is specified, will wait forever. (default: `900`)
+  # @option options [Integer] shutdown_wait
+  #   when the grace time expires, still running jobs get 30 seconds to
+  #   stop. After that, kill signal is triggered. (default: `30`)
+  # @option options [String] kill_signal
+  #   Signal to use to kill Sidekiq process if it doesn't stop.
+  #   (default: `"SIGKILL"`)
+  # @option options [Boolean] gc
+  #   Try to run garbage collection before Sidekiq process stops in case
+  #   of exceeded max_rss. (default: `true`)
+  # @option options [Proc] skip_shutdown_if
+  #   Executes a block of code after max_rss exceeds but before requesting
+  #   shutdown. (default: `proc {false}`)
   def initialize(options = {})
     @max_rss         = options.fetch(:max_rss, 0)
     @grace_time      = options.fetch(:grace_time, 15 * 60)
@@ -20,7 +39,14 @@ class Sidekiq::WorkerKiller
     @skip_shutdown   = options.fetch(:skip_shutdown_if, proc { false })
   end
 
-  # @return [void]
+  # @param [String, Class] worker_class
+  #   the string or class of the worker class being enqueued
+  # @param [Hash] job
+  #   the full job payload
+  #   @see https://github.com/mperham/sidekiq/wiki/Job-Format
+  # @param [String] queue
+  #   the name of the queue the job was pulled from
+  # @yield the next middleware in the chain or the enqueuing of the job
   def call(worker, job, queue)
     yield
     # Skip if the max RSS is not exceeded
