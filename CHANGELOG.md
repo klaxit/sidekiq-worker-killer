@@ -1,3 +1,6 @@
+**version 1.0.0**
+- Bump Sidekiq version to use the `Sidekiq::Process` API. [#12] by [@iGEL] and [#14] by [@pyrsmk]
+
 **version 0.5.0**
 - Option to skip shutdown on specific conditions (for example, for a specific job type). [#9] by [@msxavi]
 - Ensure ProcessSet is up-to-date before checking for process that will need grace time. [#10] by [@msxavi]
@@ -18,8 +21,12 @@
 [#8]: https://github.com/klaxit/sidekiq-worker-killer/pull/8
 [#9]: https://github.com/klaxit/sidekiq-worker-killer/pull/9
 [#10]: https://github.com/klaxit/sidekiq-worker-killer/pull/10
+[#12]: https://github.com/klaxit/sidekiq-worker-killer/pull/12
+[#14]: https://github.com/klaxit/sidekiq-worker-killer/pull/14
 
-[@BillFront]: https://github.com/BillFront
 [@aishek]: https://github.com/aishek
-[@VindictivePotato]: https://github.com/VindictivePotato
+[@BillFront]: https://github.com/BillFront
+[@iGEL]: https://github.com/iGEL
 [@msxavi]: https://github.com/msxavi
+[@pyrsmk]: https://github.com/pyrsmk
+[@VindictivePotato]: https://github.com/VindictivePotato
