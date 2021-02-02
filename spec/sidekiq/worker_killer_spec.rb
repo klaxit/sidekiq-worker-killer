@@ -140,8 +140,8 @@ describe Sidekiq::WorkerKiller do
 
         elapsed_time = shutdown_time - shutdown_request_time
 
-        # the elapsed time beetween shutdown request and the actual
-        # shutdown signal should be greater than the specificed grace_time
+        # the elapsed time between shutdown request and the actual
+        # shutdown signal should be greater than the specified grace_time
         expect(elapsed_time).to be >= 5.0
       end
     end

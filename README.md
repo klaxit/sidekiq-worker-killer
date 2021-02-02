@@ -31,13 +31,13 @@ end
 
 ## Available options
 
-The following options can be overrided.
+The following options can be overridden.
 
 | Option | Defaults | Description |
 | ------- | ------- | ----------- |
-| max_rss | 0 MB (disabled) | max RSS in megabytes. Above this, shutdown will be triggered. |
-| grace_time | 900 seconds | when shutdown is triggered, the Sidekiq process will not accept new job and wait at most 15 minutes for running jobs to finish. If Float::INFINITY specified, will wait forever. |
-| shutdown_wait | 30 seconds | when the grace time expires, still running jobs get 30 seconds to stop. After that, kill signal is triggered. |
+| max_rss | 0 MB (disabled) | Max RSS in megabytes. Above this, shutdown will be triggered. |
+| grace_time | 900 seconds | When shutdown is triggered, the Sidekiq process will not accept new job and wait at most 15 minutes for running jobs to finish. If Float::INFINITY specified, will wait forever. |
+| shutdown_wait | 30 seconds | When the grace time expires, still running jobs get 30 seconds to stop. After that, kill signal is triggered. |
 | kill_signal | SIGKILL | Signal to use to kill Sidekiq process if it doesn't stop. |
 | gc | true | Try to run garbage collection before Sidekiq process stops in case of exceeded max_rss. |
 | skip_shutdown_if | proc {false} | Executes a block of code after max_rss exceeds but before requesting shutdown. |
@@ -75,4 +75,4 @@ See the list of [contributors](https://github.com/klaxit/sidekiq-worker-killer/c
 
 ## License
 
-Please see LICENSE
+Please see [LICENSE](https://github.com/klaxit/sidekiq-worker-killer/blob/master/LICENSE)
