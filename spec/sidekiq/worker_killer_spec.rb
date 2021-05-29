@@ -30,6 +30,8 @@ describe Sidekiq::WorkerKiller do
 
       before do
         allow(subject).to receive(:current_rss).and_return(3)
+        allow(job).to receive(:[]).with('jid').and_return(4)
+        allow(job).to receive(:[]).with('args').and_return(5)
       end
 
       it "should request shutdown" do
