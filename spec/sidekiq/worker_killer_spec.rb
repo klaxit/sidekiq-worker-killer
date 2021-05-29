@@ -69,10 +69,10 @@ describe Sidekiq::WorkerKiller do
       let(:job){ double("job") }
       let(:queue){ double("queue") }
 
-      it "should yield" do
-        expect { |b|
-          subject.call(worker, job, queue, &b)
-        }.to yield_with_no_args
+      before do
+        allow(subject).to receive(:current_rss).and_return(3)
+        allow(job).to receive(:[]).with('jid').and_return(4)
+        allow(job).to receive(:[]).with('args').and_return(5)
       end
 
       context "when current rss is over max rss" do
