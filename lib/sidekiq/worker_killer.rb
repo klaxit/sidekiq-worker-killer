@@ -2,6 +2,7 @@ require "get_process_mem"
 require "sidekiq"
 require "sidekiq/util"
 require "sidekiq/api"
+require 'log4r'
 
 # Sidekiq server middleware. Kill worker when the RSS memory exceeds limit
 # after a given grace time.
@@ -62,6 +63,16 @@ class Sidekiq::WorkerKiller
 
     warn "current RSS #{current_rss} of #{identity} exceeds " \
          "maximum RSS #{@max_rss}"
+
+    # Log information of failing sidekiq process before kill
+    logger = Log4r::Logger.new("sidekiq-killer-log")
+    logger.add Log4r::FileOutputter.new('logfile',
+                                        :filename=>'/home/deploy/sidekiq-killer.log',
+                                        :trunc=>false,
+                                        :level=>Log4r::FATAL)
+    # Note: logger.fatal won't kill the process
+    logger.fatal "Process #{::Process.pid} killed (OOM). JID: #{job['jid']}, Job: #{worker.class.name}, Args: #{job['args']}"
+
     request_shutdown
   end
 
