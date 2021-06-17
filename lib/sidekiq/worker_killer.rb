@@ -77,7 +77,7 @@ class Sidekiq::WorkerKiller
                                         :trunc=>false,
                                         :level=>Log4r::FATAL)
     # Note: logger.fatal won't kill the process
-    logger.fatal "Process #{::Process.pid} killed (OOM) at #{Time.now}. JID: #{job['jid']}, Job: #{worker.class.name}, Args: #{job['args']}"
+    logger.fatal "Process #{::Process.pid} killed (OOM) at #{Time.current}. JID: #{job['jid']}, Job: #{worker.class.name}, Args: #{job['args']}"
 
     request_shutdown
   end
