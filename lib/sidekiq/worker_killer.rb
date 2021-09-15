@@ -67,11 +67,11 @@ class Sidekiq::WorkerKiller
     # Log information of failing sidekiq process before kill
     logger = Log4r::Logger.new("sidekiq-killer-log")
     logger.add Log4r::FileOutputter.new('logfile',
-                                        :filename=>'/home/deploy/sidekiq-killer.log',
+                                        :filename=>"#{Dir.home}/sidekiq-killer.log",
                                         :trunc=>false,
                                         :level=>Log4r::FATAL)
     # Note: logger.fatal won't kill the process
-    logger.fatal "Process #{::Process.pid} killed (OOM) at #{Time.current}. JID: #{job['jid']}, Job: #{worker.class.name}, Args: #{job['args']}"
+    logger.fatal "Process #{::Process.pid} killed (OOM) at #{Time.now}. JID: #{job['jid']}, Job: #{worker.class.name}, Args: #{job['args']}"
 
     request_shutdown
   end
@@ -128,6 +128,13 @@ class Sidekiq::WorkerKiller
 
   def current_rss
     ::GetProcessMem.new.mb
+  rescue IOError
+    # It is possible to get an IOError: stream closed while looking at
+    # /proc/{pid}/status. We get this error hundreds of times per day (Sep
+    # 2021).  GetProcessMem has another more expensive option to calculate the
+    # memory, parsing and summing information in /proc/{pid}/smaps
+    b = ::GetProcessMem.new.linux_memory
+    (b/::GetProcessMem::MB_TO_BYTE).to_f
   end
 
   def sidekiq_process
