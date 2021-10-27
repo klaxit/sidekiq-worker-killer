@@ -7,6 +7,17 @@
 
 Highly inspired by [Gitlab Sidekiq MemoryKiller](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/lib/gitlab/sidekiq_middleware/shutdown.rb) and [Noxa Sidekiq killer](https://github.com/Noxa/sidekiq-killer).
 
+---
+**NOTE**
+
+This gem needs to get the used memory of the Sidekiq process. For
+this we use [GetProcessGem](https://github.com/schneems/get_process_mem),
+but be aware that if you are running Sidekiq in Heroku(or any container) the
+memory usage will
+[not be accurate](https://github.com/schneems/get_process_mem/issues/7).
+
+---
+
 quick-refs: [install](#install) | [usage](#usage) | [available options](#available-options) | [development](#development)
 
 ## Install
