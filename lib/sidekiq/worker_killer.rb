@@ -1,12 +1,18 @@
 require "get_process_mem"
 require "sidekiq"
-require "sidekiq/util"
+begin
+  require "sidekiq/util"
+  SidekiqComponent = Sidekiq::Util
+rescue LoadError
+  require "sidekiq/component"
+  SidekiqComponent = Sidekiq::Component
+end
 require "sidekiq/api"
 
 # Sidekiq server middleware. Kill worker when the RSS memory exceeds limit
 # after a given grace time.
 class Sidekiq::WorkerKiller
-  include Sidekiq::Util
+  include SidekiqComponent
 
   MUTEX = Mutex.new
 
