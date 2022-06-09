@@ -4,8 +4,8 @@ begin
   require "sidekiq/util"
   SidekiqComponent = Sidekiq::Util
 rescue LoadError
-  require "sidekiq/component"
-  SidekiqComponent = Sidekiq::Component
+  require "sidekiq/middleware/modules"
+  SidekiqComponent = Sidekiq::ServerMiddleware
 end
 require "sidekiq/api"
 
@@ -130,6 +130,10 @@ class Sidekiq::WorkerKiller
       process["identity"] == identity
     end || raise("No sidekiq worker with identity #{identity} found")
   end
+
+  def identity
+    config[:identity] || config["identity"]
+  end unless method_defined?(:identity)
 
   def warn(msg)
     Sidekiq.logger.warn(msg)
