@@ -8,13 +8,16 @@ jobs:
     docker:
       # specify the desired version here
       - image: circleci/ruby:2.5.3-node-browsers
+        environment:
+          BUNDLE_JOBS: 3
+          BUNDLE_RETRY: 3
 
     steps:
       - checkout
 
       - run:
           name: Install Bundler
-          command: gem install bundler --conservative
+          command: gem install bundler
 
       # Load installed gems from cache if possible, bundle install & clean,
       # then save cache. Multiple caches to increase the chance of a cache hit.
@@ -22,17 +25,17 @@ jobs:
       #    (or conflicts on native gems may appear)
       - restore_cache:
           keys:
-            - v1-gem-cache-ruby-2.5-{{ arch }}-{{ checksum "sidekiq-worker-killer.gemspec" }}
-            - v1-gem-cache-ruby-2.5-{{ arch }}-
+            - v7-gem-cache-ruby-2.5-{{ arch }}-{{ checksum "sidekiq-worker-killer.gemspec" }}-{{ checksum "Appraisals" }}
+            - v7-gem-cache-ruby-2.5-{{ arch }}-
 
       - run:
           name: Install dependencies
-          command: bundle install && bundle clean
+          command: make bundle
 
       - save_cache:
-          key: v1-gem-cache-ruby-2.5-{{ arch }}-{{ checksum "sidekiq-worker-killer.gemspec" }}
+          key: v7-gem-cache-ruby-2.5-{{ arch }}-{{ checksum "sidekiq-worker-killer.gemspec" }}-{{ checksum "Appraisals" }}
           paths:
-            - vendor/bundle
+            - .bundle
 
       # Run tests!
       - run:
