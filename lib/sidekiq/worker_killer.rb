@@ -1,12 +1,18 @@
 require "get_process_mem"
 require "sidekiq"
-require "sidekiq/util"
+begin
+  require "sidekiq/util"
+  SidekiqComponent = Sidekiq::Util
+rescue LoadError
+  require "sidekiq/middleware/modules"
+  SidekiqComponent = Sidekiq::ServerMiddleware
+end
 require "sidekiq/api"
 
 # Sidekiq server middleware. Kill worker when the RSS memory exceeds limit
 # after a given grace time.
 class Sidekiq::WorkerKiller
-  include Sidekiq::Util
+  include SidekiqComponent
 
   MUTEX = Mutex.new
 
@@ -124,6 +130,10 @@ class Sidekiq::WorkerKiller
       process["identity"] == identity
     end || raise("No sidekiq worker with identity #{identity} found")
   end
+
+  def identity
+    config[:identity] || config["identity"]
+  end unless method_defined?(:identity)
 
   def warn(msg)
     Sidekiq.logger.warn(msg)

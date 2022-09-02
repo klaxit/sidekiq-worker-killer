@@ -12,6 +12,7 @@ tmp
 ## BUNDLER
 bin
 Gemfile.lock
+gemfiles/*
 vendor/bundle
 .bundle
 *.gem
