@@ -1,3 +1,6 @@
+**version 1.0.1**
+- Support for Sidekiq >= 6.5.0. [#21] by [@bf4]
+
 **version 1.0.0**
 - Bump Sidekiq version to use the `Sidekiq::Process` API. [#12] by [@iGEL] and [#14] by [@pyrsmk]
 
@@ -23,6 +26,7 @@
 [#10]: https://github.com/klaxit/sidekiq-worker-killer/pull/10
 [#12]: https://github.com/klaxit/sidekiq-worker-killer/pull/12
 [#14]: https://github.com/klaxit/sidekiq-worker-killer/pull/14
+[#21]: https://github.com/klaxit/sidekiq-worker-killer/pull/21
 
 [@aishek]: https://github.com/aishek
 [@BillFront]: https://github.com/BillFront
@@ -30,3 +34,4 @@
 [@msxavi]: https://github.com/msxavi
 [@pyrsmk]: https://github.com/pyrsmk
 [@VindictivePotato]: https://github.com/VindictivePotato
+[@bf4]: https://github.com/bf4
