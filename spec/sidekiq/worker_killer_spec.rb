@@ -135,6 +135,7 @@ describe Sidekiq::WorkerKiller do
           context "and on_shutdown is a proc" do
             let(:on_shutdown_proc) { proc { |worker, job, queue| nil } }
             it "should execute on_shutdown hook" do
+              expect(subject).to receive(:request_shutdown).once
               expect(on_shutdown_proc).to receive(:call).once
               subject.call(worker, job, queue){}
             end
@@ -143,6 +144,7 @@ describe Sidekiq::WorkerKiller do
           context "and on_shutdown is a lambda" do
             let(:on_shutdown_proc) { ->(worker, job, queue) { nil } }
             it "should execute on_shutdown hook" do
+              expect(subject).to receive(:request_shutdown).once
               expect(on_shutdown_proc).to receive(:call).once
               subject.call(worker, job, queue){}
             end
