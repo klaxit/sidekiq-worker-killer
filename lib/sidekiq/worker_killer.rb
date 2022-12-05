@@ -142,7 +142,7 @@ class Sidekiq::WorkerKiller
   end
 
   def identity
-      config[:identity] || config["identity"]
+    config[:identity] || config["identity"]
   end unless method_defined?(:identity)
 
   def warn(msg)
