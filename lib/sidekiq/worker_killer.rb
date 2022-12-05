@@ -38,7 +38,7 @@ class Sidekiq::WorkerKiller
   #   shutdown. (default: `proc {false}`)
   # @option options [Proc] on_shutdown
   #   Executes a block of code right before a shutdown happens.
-  #   (default: `proc`)
+  #   (default: `nil`)
   def initialize(options = {})
     @max_rss         = options.fetch(:max_rss, 0)
     @grace_time      = options.fetch(:grace_time, 15 * 60)
@@ -46,7 +46,7 @@ class Sidekiq::WorkerKiller
     @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
     @gc              = options.fetch(:gc, true)
     @skip_shutdown   = options.fetch(:skip_shutdown_if, proc { false })
-    @on_shutdown     = options.fetch(:on_shutdown, proc { nil })
+    @on_shutdown     = options.fetch(:on_shutdown, nil)
   end
 
   # @param [String, Class] worker_class
