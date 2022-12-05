@@ -121,9 +121,29 @@ describe Sidekiq::WorkerKiller do
           end
 
           context "and skip_shutdown_if returns nil" do
-            let(:skip_shutdown_proc) { proc { |worker, job, queue| nil } }
+            let(:skip_shutdown_proc) { proc }
             it "should still request shutdown" do
               expect(subject).to receive(:request_shutdown)
+              subject.call(worker, job, queue){}
+            end
+          end
+        end
+
+        context "and on_shutdown is given" do
+          subject{ described_class.new(max_rss: 2, on_shutdown: on_shutdown_proc) }
+
+          context "and on_shutdown is a proc" do
+            let(:on_shutdown_proc) { proc { |worker, job, queue| nil } }
+            it "should execute on_shutdown hook" do
+              expect(on_shutdown_proc).to receive(:call)
+              subject.call(worker, job, queue){}
+            end
+          end
+
+          context "and on_shutdown is a lambda" do
+            let(:on_shutdown_proc) { ->(worker, job, queue) { nil } }
+            it "should execute on_shutdown hook" do
+              expect(on_shutdown_proc).to receive(:call)
               subject.call(worker, job, queue){}
             end
           end

@@ -52,6 +52,7 @@ The following options can be overridden.
 | kill_signal | SIGKILL | Signal to use to kill Sidekiq process if it doesn't stop. |
 | gc | true | Try to run garbage collection before Sidekiq process stops in case of exceeded max_rss. |
 | skip_shutdown_if | proc {false} | Executes a block of code after max_rss exceeds but before requesting shutdown. |
+| on_shutdown | proc | Executes a block of code before just before requesting shutdown. This can be used to send custom logs or metrics to external services. |
 
 *skip_shutdown_if* is expected to return anything other than `false` or `nil` to skip shutdown.
 
