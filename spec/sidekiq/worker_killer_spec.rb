@@ -121,7 +121,7 @@ describe Sidekiq::WorkerKiller do
           end
 
           context "and skip_shutdown_if returns nil" do
-            let(:skip_shutdown_proc) { proc }
+            let(:skip_shutdown_proc) { proc { nil } }
             it "should still request shutdown" do
               expect(subject).to receive(:request_shutdown)
               subject.call(worker, job, queue){}

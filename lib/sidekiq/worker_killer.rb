@@ -46,7 +46,7 @@ class Sidekiq::WorkerKiller
     @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
     @gc              = options.fetch(:gc, true)
     @skip_shutdown   = options.fetch(:skip_shutdown_if, proc { false })
-    @on_shutdown     = options.fetch(:on_shutdown, proc)
+    @on_shutdown     = options.fetch(:on_shutdown, proc { nil })
   end
 
   # @param [String, Class] worker_class
