@@ -73,7 +73,7 @@ class Sidekiq::WorkerKiller
     warn "current RSS #{current_rss} of #{identity} exceeds " \
          "maximum RSS #{@max_rss}"
 
-    run_shutdown_hook
+    run_shutdown_hook(worker, job, queue)
     request_shutdown
   end
 
