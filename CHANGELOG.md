@@ -1,3 +1,6 @@
+**version 1.1.0**
+- Add on_shutdown hook [#23] by [@Nirei]
+
 **version 1.0.1**
 - Support for Sidekiq >= 6.5.0. [#21] by [@bf4]
 
@@ -27,6 +30,7 @@
 [#12]: https://github.com/klaxit/sidekiq-worker-killer/pull/12
 [#14]: https://github.com/klaxit/sidekiq-worker-killer/pull/14
 [#21]: https://github.com/klaxit/sidekiq-worker-killer/pull/21
+[#23]: https://github.com/klaxit/sidekiq-worker-killer/pull/23
 
 [@aishek]: https://github.com/aishek
 [@BillFront]: https://github.com/BillFront
@@ -35,3 +39,4 @@
 [@pyrsmk]: https://github.com/pyrsmk
 [@VindictivePotato]: https://github.com/VindictivePotato
 [@bf4]: https://github.com/bf4
+[@Nirei]: https://github.com/Nirei
