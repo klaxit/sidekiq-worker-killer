@@ -36,6 +36,9 @@ class Sidekiq::WorkerKiller
   # @option options [Proc] skip_shutdown_if
   #   Executes a block of code after max_rss exceeds but before requesting
   #   shutdown. (default: `proc {false}`)
+  # @option options [Proc] on_shutdown
+  #   Executes a block of code right before a shutdown happens.
+  #   (default: `nil`)
   def initialize(options = {})
     @max_rss         = options.fetch(:max_rss, 0)
     @grace_time      = options.fetch(:grace_time, 15 * 60)
@@ -43,6 +46,7 @@ class Sidekiq::WorkerKiller
     @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
     @gc              = options.fetch(:gc, true)
     @skip_shutdown   = options.fetch(:skip_shutdown_if, proc { false })
+    @on_shutdown     = options.fetch(:on_shutdown, nil)
   end
 
   # @param [String, Class] worker_class
@@ -68,17 +72,23 @@ class Sidekiq::WorkerKiller
 
     warn "current RSS #{current_rss} of #{identity} exceeds " \
          "maximum RSS #{@max_rss}"
+
+    run_shutdown_hook(worker, job, queue)
     request_shutdown
   end
 
   private
+
+  def run_shutdown_hook(worker, job, queue)
+    @on_shutdown.respond_to?(:call) && @on_shutdown.call(worker, job, queue)
+  end
 
   def skip_shutdown?(worker, job, queue)
     @skip_shutdown.respond_to?(:call) && @skip_shutdown.call(worker, job, queue)
   end
 
   def request_shutdown
-    # In another thread to allow undelying job to finish
+    # In another thread to allow underlying job to finish
     Thread.new do
       # Only if another thread is not already
       # shutting down the Sidekiq process
