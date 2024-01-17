@@ -17,6 +17,9 @@ class Sidekiq::WorkerKiller
   MUTEX = Mutex.new
 
   # @param [Hash] options
+  # @option options [Integer] max_gc_rss
+  #   Max GC RSS in MB. Above this, garbage collection will be triggered.
+  #   (default: `max_rss` (disabled))
   # @option options [Integer] max_rss
   #   Max RSS in MB. Above this, shutdown will be triggered.
   #   (default: `0` (disabled))
@@ -41,6 +44,7 @@ class Sidekiq::WorkerKiller
   #   (default: `nil`)
   def initialize(options = {})
     @max_rss         = options.fetch(:max_rss, 0)
+    @max_gc_rss      = options.fetch(:max_gs_rss, @max_rss)
     @grace_time      = options.fetch(:grace_time, 15 * 60)
     @shutdown_wait   = options.fetch(:shutdown_wait, 30)
     @kill_signal     = options.fetch(:kill_signal, "SIGKILL")
@@ -61,8 +65,11 @@ class Sidekiq::WorkerKiller
     yield
     # Skip if the max RSS is not exceeded
     return unless @max_rss > 0
-    return unless current_rss > @max_rss
-    GC.start(full_mark: true, immediate_sweep: true) if @gc
+
+    if current_rss > @max_gc_rss
+      GC.start(full_mark: true, immediate_sweep: true) if @gc
+    end
+
     return unless current_rss > @max_rss
     if skip_shutdown?(worker, job, queue)
       warn "current RSS #{current_rss} exceeds maximum RSS #{@max_rss}, " \

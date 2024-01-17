@@ -8,6 +8,7 @@ tmp
 .byebug_history
 .rvmrc
 .ruby-version
+.idea
 
 ## BUNDLER
 bin
